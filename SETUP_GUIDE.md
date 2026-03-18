@@ -1,6 +1,6 @@
 # Job Board - Setup Guide & Features
 
-## 🚀 Getting Started
+##  Getting Started
 
 ### 1. **User Registration (Role-Based)**
 
