@@ -43,7 +43,7 @@ After login or signup, users are automatically routed to their role-specific das
 
 ---
 
-## 📋 Features
+##  Features
 
 ### **Candidate Dashboard** (`/app/candidate/page.tsx`)
 
@@ -95,7 +95,7 @@ After login or signup, users are automatically routed to their role-specific das
 
 ---
 
-## 🗄️ Database Schema
+##  Database Schema
 
 ### Firestore Collections
 
@@ -159,7 +159,7 @@ After login or signup, users are automatically routed to their role-specific das
 
 ---
 
-## 🔧 Key Components
+## Key Components
 
 ### **Authentication**
 - `lib/auth-context.tsx` - Global auth state & functions
@@ -184,7 +184,7 @@ After login or signup, users are automatically routed to their role-specific das
 
 ---
 
-## 📱 User Workflows
+## User Workflows
 
 ### **Candidate User Flow**
 
@@ -235,7 +235,7 @@ After login or signup, users are automatically routed to their role-specific das
 
 ---
 
-## 🔐 Security Features
+##  Security Features
 
 ✅ Firebase Authentication (Email/Password)
 ✅ User session persistence
@@ -245,7 +245,7 @@ After login or signup, users are automatically routed to their role-specific das
 
 ---
 
-## 🎨 Design System
+##  Design System
 
 ### Colors
 - **Primary**: Cyber Purple (`#a78bfa`)
@@ -262,7 +262,7 @@ After login or signup, users are automatically routed to their role-specific das
 
 ---
 
-## 📦 Environment Variables
+## Environment Variables
 
 Required in `.env.local`:
 ```
@@ -276,7 +276,7 @@ NEXT_PUBLIC_FIREBASE_APP_ID=...
 
 ---
 
-## 🚀 Running the Project
+##  Running the Project
 
 ```bash
 # Install dependencies
@@ -291,7 +291,7 @@ npm run dev
 
 ---
 
-## 📝 Testing Checklist
+## Testing Checklist
 
 - [ ] Sign up as Candidate, verify redirect to `/candidate`
 - [ ] Sign up as Company, verify redirect to `/company`
@@ -304,7 +304,7 @@ npm run dev
 
 ---
 
-## 🔄 Future Features
+##  Future Features
 
 - [ ] Edit posted jobs
 - [ ] View job applications
@@ -319,7 +319,7 @@ npm run dev
 
 ---
 
-## 📚 API Reference
+##  API Reference
 
 ### Authentication Functions
 ```typescript
