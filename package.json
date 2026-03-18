@@ -1,0 +1,39 @@
+{
+  "name": "it-job-board",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "test:rules": "node --test tests/firestore.rules.test.mjs",
+    "test:e2e": "playwright test",
+    "migrate:legacy:dry": "npx -y -p firebase-admin node scripts/backfill-legacy-fields.mjs --dry-run",
+    "migrate:legacy": "npx -y -p firebase-admin node scripts/backfill-legacy-fields.mjs",
+    "migrate:user-links:dry": "npx -y -p firebase-admin node scripts/backfill-user-links.mjs --dry-run",
+    "migrate:user-links": "npx -y -p firebase-admin node scripts/backfill-user-links.mjs",
+    "migrate:job-workflow:dry": "npx -y -p firebase-admin node scripts/backfill-job-workflow.mjs --dry-run",
+    "migrate:job-workflow": "npx -y -p firebase-admin node scripts/backfill-job-workflow.mjs"
+  },
+  "dependencies": {
+    "firebase": "^12.9.0",
+    "lucide-react": "^0.564.0",
+    "next": "16.1.6",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "zod": "^4.1.11"
+  },
+  "devDependencies": {
+    "@firebase/rules-unit-testing": "^4.0.1",
+    "@playwright/test": "^1.53.0",
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.1.6",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  }
+}

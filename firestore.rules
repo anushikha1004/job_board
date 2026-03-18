@@ -1,0 +1,296 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isSelf(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function currentUserRole() {
+      return get(/databases/$(database)/documents/user_profiles/$(request.auth.uid)).data.role;
+    }
+
+    function isCompanyUser() {
+      return isSignedIn() && currentUserRole() == 'company';
+    }
+
+    function isAdminUser() {
+      return isSignedIn() && currentUserRole() == 'admin';
+    }
+
+    function validUserProfilePayload() {
+        return request.resource.data.keys().hasOnly([
+          'email', 'role', 'company_name', 'created_at', 'updated_at',
+          'full_name', 'phone', 'location', 'headline', 'about',
+          'experience_years', 'skills', 'links', 'portfolio_url',
+          'linkedin_url', 'github_url', 'resume_url', 'account_settings'
+        ]) &&
+        request.resource.data.email is string &&
+        request.resource.data.role in ['candidate', 'company', 'admin'] &&
+        (request.resource.data.company_name == null || request.resource.data.company_name is string) &&
+        request.resource.data.created_at is timestamp &&
+        (!('updated_at' in request.resource.data) || request.resource.data.updated_at is timestamp) &&
+        (!('full_name' in request.resource.data) || request.resource.data.full_name is string) &&
+        (!('phone' in request.resource.data) || request.resource.data.phone is string) &&
+        (!('location' in request.resource.data) || request.resource.data.location is string) &&
+        (!('headline' in request.resource.data) || request.resource.data.headline is string) &&
+        (!('about' in request.resource.data) || request.resource.data.about is string) &&
+        (!('experience_years' in request.resource.data) ||
+          request.resource.data.experience_years == null ||
+          request.resource.data.experience_years is int ||
+          request.resource.data.experience_years is float) &&
+        (!('skills' in request.resource.data) || request.resource.data.skills is list) &&
+        (!('links' in request.resource.data) || request.resource.data.links is list) &&
+        (!('portfolio_url' in request.resource.data) || request.resource.data.portfolio_url is string) &&
+        (!('linkedin_url' in request.resource.data) || request.resource.data.linkedin_url is string) &&
+        (!('github_url' in request.resource.data) || request.resource.data.github_url is string) &&
+        (!('resume_url' in request.resource.data) || request.resource.data.resume_url is string) &&
+        (!('account_settings' in request.resource.data) || request.resource.data.account_settings is map);
+    }
+
+    function validApplicationPayload() {
+      return request.resource.data.keys().hasOnly([
+          'candidate_id', 'candidate_name', 'candidate_email', 'company_id',
+          'job_id', 'job_title', 'company_name', 'apply_url', 'location',
+          'type', 'status', 'candidate_email_opt_in', 'company_email_opt_in',
+          'recruiter_notes', 'interview_at', 'withdrawn_by_candidate',
+          'created_at', 'updated_at'
+        ]) &&
+        request.resource.data.candidate_id is string &&
+        request.resource.data.candidate_name is string &&
+        request.resource.data.candidate_email is string &&
+        request.resource.data.company_id is string &&
+        request.resource.data.job_id is string &&
+        request.resource.data.job_title is string &&
+        request.resource.data.company_name is string &&
+        request.resource.data.apply_url is string &&
+        request.resource.data.location is string &&
+        request.resource.data.type is string &&
+        request.resource.data.status in ['submitted', 'reviewed', 'interviewing', 'shortlisted', 'withdrawn', 'rejected', 'hired'] &&
+        request.resource.data.candidate_email_opt_in is bool &&
+        request.resource.data.company_email_opt_in is bool &&
+        request.resource.data.recruiter_notes is string &&
+        (request.resource.data.interview_at == null || request.resource.data.interview_at is timestamp) &&
+        request.resource.data.withdrawn_by_candidate is bool &&
+        request.resource.data.created_at is timestamp &&
+        request.resource.data.updated_at is timestamp;
+    }
+
+    function validJobPayload() {
+      return request.resource.data.keys().hasOnly([
+        'title', 'company_name', 'description', 'tags', 'location', 'type',
+        'apply_url', 'salary_range', 'postedBy', 'status', 'pipeline_state', 'created_at', 'updated_at'
+      ]) &&
+      request.resource.data.title is string &&
+      request.resource.data.company_name is string &&
+      request.resource.data.apply_url is string &&
+      request.resource.data.tags is list &&
+      request.resource.data.status in ['open', 'archived'] &&
+      request.resource.data.pipeline_state in ['new', 'reviewed', 'shortlisted', 'interviewing', 'offer', 'hired', 'rejected'] &&
+      request.resource.data.salary_range is map &&
+      request.resource.data.salary_range.min is int &&
+      request.resource.data.salary_range.max is int &&
+      request.resource.data.salary_range.max >= request.resource.data.salary_range.min &&
+      request.resource.data.postedBy is string &&
+      request.resource.data.created_at is timestamp &&
+      request.resource.data.updated_at is timestamp &&
+      request.resource.data.postedBy == request.auth.uid;
+    }
+
+    function validJobPayloadForAdmin() {
+      return request.resource.data.keys().hasOnly([
+        'title', 'company_name', 'description', 'tags', 'location', 'type',
+        'apply_url', 'salary_range', 'postedBy', 'status', 'pipeline_state', 'created_at', 'updated_at'
+      ]) &&
+      request.resource.data.title is string &&
+      request.resource.data.company_name is string &&
+      request.resource.data.apply_url is string &&
+      request.resource.data.tags is list &&
+      request.resource.data.status in ['open', 'archived'] &&
+      request.resource.data.pipeline_state in ['new', 'reviewed', 'shortlisted', 'interviewing', 'offer', 'hired', 'rejected'] &&
+      request.resource.data.salary_range is map &&
+      request.resource.data.salary_range.min is int &&
+      request.resource.data.salary_range.max is int &&
+      request.resource.data.salary_range.max >= request.resource.data.salary_range.min &&
+      request.resource.data.postedBy is string &&
+      request.resource.data.created_at is timestamp &&
+      request.resource.data.updated_at is timestamp &&
+      request.resource.data.postedBy == resource.data.postedBy;
+    }
+
+    function validCompanyProfilePayload() {
+      return request.resource.data.keys().hasOnly([
+        'userId', 'company_name', 'website', 'about', 'size', 'location', 'created_at', 'updated_at'
+      ]) &&
+      request.resource.data.userId is string &&
+      request.resource.data.company_name is string &&
+      request.resource.data.company_name.size() >= 2 &&
+      request.resource.data.website is string &&
+      request.resource.data.about is string &&
+      request.resource.data.size is string &&
+      request.resource.data.location is string &&
+      request.resource.data.created_at is timestamp &&
+      request.resource.data.updated_at is timestamp;
+    }
+
+    function validCandidateResumePayload() {
+      return request.resource.data.keys().hasOnly([
+        'user_id', 'file_name', 'file_size', 'file_type', 'resume_path',
+        'resume_url', 'expires_at', 'is_deleted', 'created_at', 'updated_at'
+      ]) &&
+      request.resource.data.user_id is string &&
+      request.resource.data.file_name is string &&
+      request.resource.data.file_size is int &&
+      request.resource.data.file_type is string &&
+      request.resource.data.resume_path is string &&
+      request.resource.data.resume_url is string &&
+      request.resource.data.expires_at is timestamp &&
+      request.resource.data.is_deleted is bool &&
+      request.resource.data.created_at is timestamp &&
+      request.resource.data.updated_at is timestamp;
+    }
+
+    match /user_profiles/{userId} {
+      allow read: if isSelf(userId) || isAdminUser();
+      allow create: if isSelf(userId) && validUserProfilePayload();
+      allow update: if isSelf(userId) &&
+        validUserProfilePayload() &&
+        request.resource.data.role == resource.data.role &&
+        request.resource.data.created_at == resource.data.created_at;
+      allow delete: if false;
+    }
+
+    match /jobs/{jobId} {
+      allow read: if true;
+      allow create: if isCompanyUser() && validJobPayload();
+      allow update: if (isCompanyUser() &&
+        resource.data.postedBy == request.auth.uid &&
+        validJobPayload() &&
+        request.resource.data.postedBy == resource.data.postedBy &&
+        request.resource.data.created_at == resource.data.created_at) ||
+        (isAdminUser() &&
+          validJobPayloadForAdmin() &&
+          request.resource.data.created_at == resource.data.created_at);
+      allow delete: if (isCompanyUser() && resource.data.postedBy == request.auth.uid) || isAdminUser();
+    }
+
+    match /company_profiles/{profileId} {
+      allow read: if true || isAdminUser();
+      allow create: if isCompanyUser() &&
+        profileId == request.auth.uid &&
+        request.resource.data.userId == request.auth.uid &&
+        validCompanyProfilePayload();
+      allow update: if isCompanyUser() &&
+        profileId == request.auth.uid &&
+        resource.data.userId == request.auth.uid &&
+        request.resource.data.userId == resource.data.userId &&
+        validCompanyProfilePayload() &&
+        request.resource.data.created_at == resource.data.created_at;
+      allow delete: if false;
+    }
+
+    match /favorites/{favoriteId} {
+      allow read: if (isSignedIn() && resource.data.userId == request.auth.uid) || isAdminUser();
+      allow create: if isSignedIn() &&
+        request.resource.data.keys().hasOnly(['userId', 'jobId', 'savedAt']) &&
+        request.resource.data.userId == request.auth.uid &&
+        request.resource.data.jobId is string &&
+        request.resource.data.savedAt is timestamp;
+      allow delete: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow update: if false;
+    }
+
+    match /applications/{applicationId} {
+      allow read: if isSignedIn() &&
+        (resource.data.candidate_id == request.auth.uid || resource.data.company_id == request.auth.uid || isAdminUser());
+
+      allow create: if isSignedIn() &&
+        validApplicationPayload() &&
+        request.resource.data.candidate_id == request.auth.uid;
+
+      allow update: if isSignedIn() &&
+        validApplicationPayload() &&
+        request.resource.data.candidate_id == resource.data.candidate_id &&
+        request.resource.data.company_id == resource.data.company_id &&
+        request.resource.data.job_id == resource.data.job_id &&
+        request.resource.data.job_title == resource.data.job_title &&
+        request.resource.data.company_name == resource.data.company_name &&
+        request.resource.data.candidate_name == resource.data.candidate_name &&
+        request.resource.data.candidate_email == resource.data.candidate_email &&
+        request.resource.data.apply_url == resource.data.apply_url &&
+        request.resource.data.location == resource.data.location &&
+        request.resource.data.type == resource.data.type &&
+        request.resource.data.candidate_email_opt_in == resource.data.candidate_email_opt_in &&
+        request.resource.data.company_email_opt_in == resource.data.company_email_opt_in &&
+        request.resource.data.created_at == resource.data.created_at &&
+        (
+          (
+            resource.data.company_id == request.auth.uid &&
+            request.resource.data.withdrawn_by_candidate == resource.data.withdrawn_by_candidate
+          ) ||
+          (
+            resource.data.candidate_id == request.auth.uid &&
+            request.resource.data.status == 'withdrawn' &&
+            request.resource.data.withdrawn_by_candidate == true &&
+            request.resource.data.recruiter_notes == resource.data.recruiter_notes &&
+            request.resource.data.interview_at == resource.data.interview_at
+          )
+        );
+
+      allow delete: if false;
+    }
+
+    match /notification_reads/{readId} {
+      allow read: if isSignedIn() && resource.data.user_id == request.auth.uid;
+      allow create: if isSignedIn() &&
+        request.resource.data.keys().hasOnly(['user_id', 'notification_id', 'created_at', 'read_at']) &&
+        request.resource.data.user_id == request.auth.uid &&
+        request.resource.data.notification_id is string &&
+        request.resource.data.created_at is timestamp &&
+        request.resource.data.read_at is timestamp;
+      allow update: if isSignedIn() &&
+        request.resource.data.keys().hasOnly(['user_id', 'notification_id', 'created_at', 'read_at']) &&
+        resource.data.user_id == request.auth.uid &&
+        request.resource.data.user_id == resource.data.user_id &&
+        request.resource.data.notification_id == resource.data.notification_id &&
+        request.resource.data.created_at is timestamp &&
+        request.resource.data.read_at is timestamp;
+      allow delete: if false;
+    }
+
+    match /candidate_resumes/{resumeId} {
+      allow read: if (isSignedIn() && resource.data.user_id == request.auth.uid) || isAdminUser();
+      allow create: if isSignedIn() &&
+        validCandidateResumePayload() &&
+        request.resource.data.user_id == request.auth.uid;
+      allow update: if isSignedIn() &&
+        validCandidateResumePayload() &&
+        resource.data.user_id == request.auth.uid &&
+        request.resource.data.user_id == resource.data.user_id &&
+        request.resource.data.file_name == resource.data.file_name &&
+        request.resource.data.file_size == resource.data.file_size &&
+        request.resource.data.file_type == resource.data.file_type &&
+        request.resource.data.resume_path == resource.data.resume_path &&
+        request.resource.data.created_at == resource.data.created_at;
+      allow delete: if false;
+    }
+
+    match /audit_logs/{auditId} {
+      allow read: if isAdminUser();
+      allow create: if isSignedIn() &&
+        request.resource.data.keys().hasOnly(['actor_id', 'actor_role', 'action', 'target_type', 'target_id', 'metadata', 'created_at']) &&
+        request.resource.data.actor_id == request.auth.uid &&
+        request.resource.data.actor_role in ['candidate', 'company', 'admin'] &&
+        request.resource.data.action is string &&
+        request.resource.data.target_type is string &&
+        request.resource.data.target_id is string &&
+        request.resource.data.metadata is map &&
+        request.resource.data.created_at is timestamp;
+      allow update: if false;
+      allow delete: if false;
+    }
+  }
+}
