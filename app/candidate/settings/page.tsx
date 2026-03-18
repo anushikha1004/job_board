@@ -18,7 +18,7 @@ import { Toast, type ToastMessage } from '@/components/Toast';
 import { ConfirmModal } from '@/components/ConfirmModal';
 import { useAuth } from '@/lib/auth-context';
 import { db } from '@/lib/firebase';
-import app from '@/lib/firebase';
+import app, { hasRequiredConfig } from '@/lib/firebase';
 import { DEFAULT_CANDIDATE_SETTINGS, normalizeCandidateSettings, type CandidateAccountSettings } from '@/lib/account-settings';
 
 export default function CandidateSettingsPage() {
@@ -111,6 +111,9 @@ export default function CandidateSettingsPage() {
 
     setIsUpdatingPassword(true);
     try {
+      if (!hasRequiredConfig || !app) {
+        throw new Error('Firebase is not configured.');
+      }
       const auth = getAuth(app);
       const currentUser = auth.currentUser;
       if (!currentUser || !currentUser.email) throw new Error('Not authenticated');
@@ -131,6 +134,9 @@ export default function CandidateSettingsPage() {
   const handleDeleteAccount = async () => {
     setIsDeletingAccount(true);
     try {
+      if (!hasRequiredConfig || !app) {
+        throw new Error('Firebase is not configured.');
+      }
       const auth = getAuth(app);
       const currentUser = auth.currentUser;
       if (!currentUser) throw new Error('Not authenticated');
@@ -152,6 +158,9 @@ export default function CandidateSettingsPage() {
   const sendReset = async () => {
     if (!user?.email) return;
     try {
+      if (!hasRequiredConfig || !app) {
+        throw new Error('Firebase is not configured.');
+      }
       await sendPasswordResetEmail(getAuth(app), user.email);
       setToast({ id: Date.now(), type: 'success', message: 'Password reset email sent.' });
     } catch (err) {

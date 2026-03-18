@@ -17,7 +17,7 @@ import {
   User,
   UserCredential,
 } from 'firebase/auth';
-import app from './firebase';
+import app, { hasRequiredConfig } from './firebase';
 import { initObservability } from './observability';
 import { logError, logInfo } from './logger';
 import { clearRoleCookie } from './role-cookie';
@@ -42,7 +42,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     (window.location?.protocol === 'http:' || window.location?.protocol === 'https:');
   const [isLoading, setIsLoading] = useState(isBrowser);
   const [error, setError] = useState<string | null>(null);
-  const auth = isBrowser && app ? getAuth(app) : null;
+  const auth = isBrowser && hasRequiredConfig && app ? getAuth(app) : null;
+
+  useEffect(() => {
+    if (!auth) {
+      setIsLoading(false);
+    }
+  }, [auth]);
 
   // Set persistence to local
   useEffect(() => {
