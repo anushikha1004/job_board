@@ -28,7 +28,7 @@ jobs:
           java-version: "17"
 
       - name: Install dependencies
-        run: npm ci
+        run: npm install --legacy-peer-deps
 
       - name: Lint
         run: npm run lint
