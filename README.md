@@ -41,7 +41,7 @@ All docs organized in `docs/` folder:
 
 > Production-ready job board with Nex) | 2-minute setup |
 | [FIREBASE_SETUP.md](./docs/FIREBAS
-## ✨ Features
+##  Features
 
 -  Glassmorphism design (dark mode)
 - Advanced search ) |
