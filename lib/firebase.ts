@@ -48,17 +48,20 @@ function validateFirebaseConfig(): void {
   }
 }
 
-const isBrowser = typeof window !== 'undefined';
+const canUseDom =
+  typeof window !== 'undefined' &&
+  typeof window.document !== 'undefined' &&
+  typeof window.document.createElement === 'function';
 
 // Validate configuration only in the browser to avoid build-time failures in CI.
-if (isBrowser) {
+if (canUseDom) {
   validateFirebaseConfig();
 }
 
 let app: FirebaseApp = null as unknown as FirebaseApp;
 let db: Firestore = null as unknown as Firestore;
 
-if (isBrowser && hasRequiredConfig) {
+if (canUseDom && hasRequiredConfig) {
   app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
   db = initializeFirestore(app, {
     localCache: persistentLocalCache({
