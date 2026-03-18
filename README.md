@@ -45,7 +45,7 @@ All docs organized in `docs/` folder:
 
 -  Glassmorphism design (dark mode)
 - Advanced search ) |
-- Glassmone- 🔍 Advanced search & multi-fil/IMPLE-  Tech stack icons (20+ technologies)
+- Glassmone- Advanced search & multi-fil/IMPLE-  Tech stack icons (20+ technologies)
 RO- Optimized performance (memoization,HE- 100% TypeScript with error boundaries
 - ?k- Next.js 16 • React 19 • TypeScript • Tai-  Fully responsive (mobile? Firebase
 
