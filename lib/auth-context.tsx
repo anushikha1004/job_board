@@ -36,7 +36,10 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const isBrowser = typeof window !== 'undefined';
+  const isBrowser =
+    typeof window !== 'undefined' &&
+    typeof window.document !== 'undefined' &&
+    (window.location?.protocol === 'http:' || window.location?.protocol === 'https:');
   const [isLoading, setIsLoading] = useState(isBrowser);
   const [error, setError] = useState<string | null>(null);
   const auth = isBrowser && app ? getAuth(app) : null;

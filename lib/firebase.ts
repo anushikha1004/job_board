@@ -51,7 +51,8 @@ function validateFirebaseConfig(): void {
 const canUseDom =
   typeof window !== 'undefined' &&
   typeof window.document !== 'undefined' &&
-  typeof window.document.createElement === 'function';
+  typeof window.document.createElement === 'function' &&
+  (window.location?.protocol === 'http:' || window.location?.protocol === 'https:');
 
 // Validate configuration only in the browser to avoid build-time failures in CI.
 if (canUseDom) {
