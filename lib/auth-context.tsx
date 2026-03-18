@@ -36,9 +36,9 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const isBrowser = typeof window !== 'undefined';
+  const [isLoading, setIsLoading] = useState(isBrowser);
+  const [error, setError] = useState<string | null>(null);
   const auth = isBrowser && app ? getAuth(app) : null;
 
   // Set persistence to local
@@ -52,10 +52,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Listen for auth state changes
   useEffect(() => {
-    if (!auth) {
-      setIsLoading(false);
-      return;
-    }
+    if (!auth) return;
     const unsubscribe = onAuthStateChanged(
       auth,
       (currentUser) => {
