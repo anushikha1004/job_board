@@ -69,5 +69,3 @@ if (isBrowser && hasRequiredConfig) {
 
 export { db };
 export default app;
-
-export default app;
