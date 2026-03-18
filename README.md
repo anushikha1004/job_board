@@ -1,67 +1,46 @@
-# IT Jobs Board
+# TechHire
 
-> Production-ready job board with Next.js 16, React 19, TypeScript & Tailwind CSS.
+TechHire is a role-based job board built with Next.js (App Router), Firebase, and Tailwind.
+It provides separate candidate and recruiter experiences, job posting, applications, notifications,
+and resume handling.
 
-##  Features
-
--  Glassmorphism design (dark mode)
-- Advanced search & multi-filter system
-- Tech stack icons (20+ technologies)
-- Optimized performance (memoization, debouncing)
-- 100% TypeScript with error boundaries
-- WCAG AA accessibility compliant
-- Fully responsive (mobile-first)
-- Firebase Firestore integration (optional)
-
-##  Quick Start
+## Quick Start
 
 ```bash
 npm install
 npm run dev
-# Visit http://localhost:3000
 ```
 
-##  Project Structure
+Open `http://localhost:3000`.
 
-```
-app/              # Next.js pages & layout
-components/       # React components
-lib/              # Hooks, utils, Firebase config
-types/            # TypeScript interfaces
-docs/             # Full documentation
-public/           # Static assets
-```
-
-##  Documentation
-
-All docs organized in `docs/` folder:
-
-| File | Purpose |
-|----# IT Jobs Board
-
-> Production-ready job board with Nex) | 2-minute setup |
-| [FIREBASE_SETUP.md](./docs/FIREBAS
-##  Features
-
--  Glassmorphism design (dark mode)
-- Advanced search ) |
-- Glassmone- Advanced search & multi-fil/IMPLE-  Tech stack icons (20+ technologies)
-RO- Optimized performance (memoization,HE- 100% TypeScript with error boundaries
-- ?k- Next.js 16 • React 19 • TypeScript • Tai-  Fully responsive (mobile? Firebase
-
-##  Next Steps
-
-1. **Customize
-##  Quick Start
+## Scripts
 
 ```bash
-npm install
-npm rd J
-```bash
-npm instarebnpm ineenpm r)
-3. **# Visit ht??```
+npm run dev
+npm run lint
+npm run build -- --webpack
+```
 
-##  Project Structuh*
-#→ Firebase Authentication
-5.ap*Scomponents/       # React components
-lib/*Slib/              # Hooks, utils, Fcumentation**
+## Documentation
+
+All documentation lives in `docs/`:
+
+- `docs/INDEX.md` – documentation hub
+- `docs/QUICK_START.md` – local dev setup
+- `docs/FIREBASE_SETUP.md` – Firebase project + rules
+- `docs/PRODUCTION_CHECKLIST.md` – pre-launch checklist
+- `docs/DESIGN_SYSTEM.md` – UI tokens and design guidance
+
+## Folder Layout
+
+```
+app/            Next.js routes and layouts
+components/     UI components
+lib/            data, auth, hooks, utilities
+types/          shared types
+public/         static assets
+```
+
+## License
+
+MIT

@@ -36,13 +36,18 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const isBrowser =
+    typeof window !== 'undefined' &&
+    typeof window.document !== 'undefined' &&
+    (window.location?.protocol === 'http:' || window.location?.protocol === 'https:');
+  const [isLoading, setIsLoading] = useState(isBrowser);
   const [error, setError] = useState<string | null>(null);
-  const auth = getAuth(app);
+  const auth = isBrowser && app ? getAuth(app) : null;
 
   // Set persistence to local
   useEffect(() => {
     initObservability();
+    if (!auth) return;
     setPersistence(auth, browserLocalPersistence).catch((err) => {
       logError('auth.persistence.error', err, {});
     });
@@ -50,6 +55,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Listen for auth state changes
   useEffect(() => {
+    if (!auth) return;
     const unsubscribe = onAuthStateChanged(
       auth,
       (currentUser) => {
@@ -72,6 +78,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signUp = async (email: string, password: string): Promise<UserCredential> => {
     setError(null);
+    if (!auth) {
+      const err = new Error('Auth is not initialized');
+      setError(err.message);
+      throw err;
+    }
     try {
       const result = await createUserWithEmailAndPassword(auth, email, password);
       setUser(result.user);
@@ -86,6 +97,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signIn = async (email: string, password: string): Promise<UserCredential> => {
     setError(null);
+    if (!auth) {
+      const err = new Error('Auth is not initialized');
+      setError(err.message);
+      throw err;
+    }
     try {
       const result = await signInWithEmailAndPassword(auth, email, password);
       setUser(result.user);
@@ -100,6 +116,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signOut = async (): Promise<void> => {
     setError(null);
+    if (!auth) {
+      const err = new Error('Auth is not initialized');
+      setError(err.message);
+      throw err;
+    }
     try {
       await firebaseSignOut(auth);
       setUser(null);

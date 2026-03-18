@@ -3,11 +3,12 @@
  * Initialize Firestore client for job board
  */
 
-import { initializeApp,getApps } from 'firebase/app';
-import { 
-  initializeFirestore, 
-  persistentLocalCache, 
-  persistentMultipleTabManager 
+import { initializeApp, getApps, type FirebaseApp } from 'firebase/app';
+import {
+  initializeFirestore,
+  persistentLocalCache,
+  persistentMultipleTabManager,
+  type Firestore,
 } from "firebase/firestore";
 
 // Firebase configuration from environment variables
@@ -23,16 +24,18 @@ const firebaseConfig = {
 /**
  * Validate Firebase configuration
  */
-function validateFirebaseConfig(): void {
-  const requiredFields = [
-    'apiKey',
-    'authDomain',
-    'projectId',
-    'storageBucket',
-    'messagingSenderId',
-    'appId',
-  ] as const;
+const requiredFields = [
+  'apiKey',
+  'authDomain',
+  'projectId',
+  'storageBucket',
+  'messagingSenderId',
+  'appId',
+] as const;
 
+const hasRequiredConfig = requiredFields.every((field) => Boolean(firebaseConfig[field]));
+
+function validateFirebaseConfig(): void {
   const missingFields = requiredFields.filter(
     (field) => !firebaseConfig[field]
   );
@@ -45,18 +48,28 @@ function validateFirebaseConfig(): void {
   }
 }
 
-// Validate configuration on module load
-validateFirebaseConfig();
+const canUseDom =
+  typeof window !== 'undefined' &&
+  typeof window.document !== 'undefined' &&
+  typeof window.document.createElement === 'function' &&
+  (window.location?.protocol === 'http:' || window.location?.protocol === 'https:');
 
-// Initialize Firebase
-const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
+// Validate configuration only in the browser to avoid build-time failures in CI.
+if (canUseDom) {
+  validateFirebaseConfig();
+}
 
-// Initialize Firestore
-// export const db = getFirestore(app);
-export const db = initializeFirestore(app, {
-  localCache: persistentLocalCache({
-    tabManager: persistentMultipleTabManager()
-  })
-});
+let app: FirebaseApp = null as unknown as FirebaseApp;
+let db: Firestore = null as unknown as Firestore;
 
+if (canUseDom && hasRequiredConfig) {
+  app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
+  db = initializeFirestore(app, {
+    localCache: persistentLocalCache({
+      tabManager: persistentMultipleTabManager()
+    })
+  });
+}
+
+export { db };
 export default app;
