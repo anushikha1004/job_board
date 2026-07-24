@@ -16,7 +16,7 @@ import { FirebaseError } from 'firebase/app';
 import { Toast, type ToastMessage } from '@/components/Toast';
 import { getAuth, sendEmailVerification, sendPasswordResetEmail } from 'firebase/auth';
 import { isCandidateProfileComplete } from '@/lib/candidate-profile';
-import app from '@/lib/firebase';
+import app, { hasRequiredConfig } from '@/lib/firebase';
 import { setRoleCookie } from '@/lib/role-cookie';
 
 interface LoginFormProps {
@@ -143,6 +143,9 @@ export function LoginForm({
 
     setIsLoading(true);
     try {
+      if (!hasRequiredConfig || !app) {
+        throw new Error('Firebase config is missing. Check your environment variables.');
+      }
       const auth = getAuth(app);
       await sendPasswordResetEmail(auth, email.trim());
       setToast({

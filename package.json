@@ -7,6 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "smoke:ci": "npm run lint && npm run build -- --webpack",
+    "smoke:http": "node scripts/smoke-http.mjs",
     "test:rules": "node --test tests/firestore.rules.test.mjs",
     "test:e2e": "playwright test",
     "migrate:legacy:dry": "npx -y -p firebase-admin node scripts/backfill-legacy-fields.mjs --dry-run",

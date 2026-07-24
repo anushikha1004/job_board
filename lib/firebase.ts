@@ -72,4 +72,5 @@ if (canUseDom && hasRequiredConfig) {
 }
 
 export { db };
+export { hasRequiredConfig, canUseDom };
 export default app;
