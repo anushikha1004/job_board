@@ -1,5 +1,5 @@
-import React, { useState, useCallback } from 'react';
-import { Search, Filter, X } from 'lucide-react';
+import React, { useState, useCallback, useEffect } from 'react';
+import { Search, Filter, X, Building2 } from 'lucide-react';
 import {
   SALARY_RANGES,
   JOB_CATEGORIES,
@@ -9,6 +9,7 @@ import {
   TECH_STACK_OPTIONS,
   SALARY_CURRENCIES,
   POSTED_DATE_OPTIONS,
+  MIN_SALARY_OPTIONS,
   SORT_OPTIONS,
   MESSAGES,
 } from '@/lib/constants';
@@ -25,8 +26,10 @@ interface SearchBarProps {
 export interface FilterState {
   searchQuery: string;
   searchLocation: string;
+  company: string;
   category: string;
   salary: string;
+  minSalary: string;
   type: string;
   location: string;
   experienceLevel: string;
@@ -34,6 +37,7 @@ export interface FilterState {
   salaryCurrency: string;
   postedDate: string;
   remoteOnly: boolean;
+  hasSalary: boolean;
   sortBy: string;
 }
 
@@ -49,8 +53,10 @@ export const SearchBar: React.FC<SearchBarProps> = ({
   const [filters, setFilters] = useState<FilterState>(() => ({
     searchQuery: initialFilters?.searchQuery || '',
     searchLocation: initialFilters?.searchLocation || '',
+    company: initialFilters?.company || '',
     category: initialFilters?.category || '',
     salary: initialFilters?.salary || '',
+    minSalary: initialFilters?.minSalary || '',
     type: initialFilters?.type || '',
     location: initialFilters?.location || '',
     experienceLevel: initialFilters?.experienceLevel || '',
@@ -58,8 +64,29 @@ export const SearchBar: React.FC<SearchBarProps> = ({
     salaryCurrency: initialFilters?.salaryCurrency || '',
     postedDate: initialFilters?.postedDate || '',
     remoteOnly: Boolean(initialFilters?.remoteOnly),
+    hasSalary: Boolean(initialFilters?.hasSalary),
     sortBy: initialFilters?.sortBy || 'newest',
   }));
+
+  useEffect(() => {
+    setFilters({
+      searchQuery: initialFilters?.searchQuery || '',
+      searchLocation: initialFilters?.searchLocation || '',
+      company: initialFilters?.company || '',
+      category: initialFilters?.category || '',
+      salary: initialFilters?.salary || '',
+      minSalary: initialFilters?.minSalary || '',
+      type: initialFilters?.type || '',
+      location: initialFilters?.location || '',
+      experienceLevel: initialFilters?.experienceLevel || '',
+      techStack: initialFilters?.techStack || '',
+      salaryCurrency: initialFilters?.salaryCurrency || '',
+      postedDate: initialFilters?.postedDate || '',
+      remoteOnly: Boolean(initialFilters?.remoteOnly),
+      hasSalary: Boolean(initialFilters?.hasSalary),
+      sortBy: initialFilters?.sortBy || 'newest',
+    });
+  }, [initialFilters]);
 
   const handleFilterChange = useCallback((
     key: keyof FilterState,
@@ -72,12 +99,12 @@ export const SearchBar: React.FC<SearchBarProps> = ({
 
   const hasActiveFilters = Object.entries(filters).some(([key, value]) => {
     if (key === 'sortBy') return value !== 'newest';
-    if (key === 'remoteOnly') return value === true;
+    if (key === 'remoteOnly' || key === 'hasSalary') return value === true;
     return value !== '';
   });
   const activeFilterCount = Object.entries(filters).filter(([key, value]) => {
     if (key === 'sortBy') return value !== 'newest';
-    if (key === 'remoteOnly') return value === true;
+    if (key === 'remoteOnly' || key === 'hasSalary') return value === true;
     return value !== '';
   }).length;
 
@@ -85,8 +112,10 @@ export const SearchBar: React.FC<SearchBarProps> = ({
     const emptyFilters: FilterState = {
       searchQuery: '',
       searchLocation: '',
+      company: '',
       category: '',
       salary: '',
+      minSalary: '',
       type: '',
       location: '',
       experienceLevel: '',
@@ -94,6 +123,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
       salaryCurrency: '',
       postedDate: '',
       remoteOnly: false,
+      hasSalary: false,
       sortBy: 'newest',
     };
     setFilters(emptyFilters);
@@ -179,6 +209,21 @@ export const SearchBar: React.FC<SearchBarProps> = ({
         <div className={`grid grid-cols-1 gap-4 ${sidebarMode ? '' : 'md:grid-cols-3 lg:grid-cols-5'} ${sidebarMode ? 'pt-1' : 'pt-4 border-t border-glass-border'}`}>
           {/* Category Filter */}
           <div className="space-y-2">
+            <label className="text-sm font-semibold text-foreground">Company</label>
+            <div className="relative">
+              <Building2 className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-foreground-muted" />
+              <input
+                type="text"
+                value={filters.company}
+                onChange={(e) => handleFilterChange('company', e.target.value)}
+                disabled={isLoading}
+                placeholder="Company name"
+                className="w-full bg-glass-background border border-glass-border rounded-lg py-2 pl-9 pr-3 text-foreground text-sm placeholder-foreground-muted focus:outline-none focus:border-cyber-purple focus:ring-2 focus:ring-cyber-purple/20 transition disabled:opacity-50"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
             <label className="text-sm font-semibold text-foreground">Category</label>
             <select
               value={filters.category}
@@ -202,6 +247,20 @@ export const SearchBar: React.FC<SearchBarProps> = ({
               className="w-full bg-glass-background border border-glass-border rounded-lg px-4 py-2 text-foreground text-sm focus:outline-none focus:border-cyber-purple focus:ring-2 focus:ring-cyber-purple/20 transition disabled:opacity-50"
             >
               {SALARY_RANGES.map(range => (
+                <option key={range.value} value={range.value}>{range.label}</option>
+              ))}
+            </select>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-sm font-semibold text-foreground">Minimum Salary</label>
+            <select
+              value={filters.minSalary}
+              onChange={(e) => handleFilterChange('minSalary', e.target.value)}
+              disabled={isLoading}
+              className="w-full bg-glass-background border border-glass-border rounded-lg px-4 py-2 text-foreground text-sm focus:outline-none focus:border-cyber-purple focus:ring-2 focus:ring-cyber-purple/20 transition disabled:opacity-50"
+            >
+              {MIN_SALARY_OPTIONS.map((range) => (
                 <option key={range.value} value={range.value}>{range.label}</option>
               ))}
             </select>
@@ -307,6 +366,23 @@ export const SearchBar: React.FC<SearchBarProps> = ({
                 className="h-4 w-4"
               />
               Show remote jobs only
+            </label>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-sm font-semibold text-foreground">Salary Visibility</label>
+            <label className="flex items-center gap-2 rounded-lg border border-glass-border px-3 py-2 text-sm text-foreground-light">
+              <input
+                type="checkbox"
+                checked={filters.hasSalary}
+                onChange={(e) => {
+                  const newFilters = { ...filters, hasSalary: e.target.checked };
+                  setFilters(newFilters);
+                  onFilterChange?.(newFilters);
+                }}
+                className="h-4 w-4"
+              />
+              Show jobs with salary only
             </label>
           </div>
 

@@ -12,7 +12,7 @@ import { MESSAGES } from '@/lib/constants';
 import { getCompanyProfilesByUserIds } from '@/lib/firestore';
 import type { CompanyProfile } from '@/types/company';
 import { sortJobs } from '@/lib/utils';
-import { MapPin, Search } from 'lucide-react';
+import { ArrowRight, BriefcaseBusiness, Cpu, MapPin, Search, Sparkles, Users } from 'lucide-react';
 import { useAuth } from '@/lib/auth-context';
 import { getCandidateApplications } from '@/lib/applications';
 import { doc, getDoc } from 'firebase/firestore';
@@ -21,8 +21,10 @@ import { db } from '@/lib/firebase';
 const DEFAULT_FILTERS: FilterState = {
   searchQuery: '',
   searchLocation: '',
+  company: '',
   category: '',
   salary: '',
+  minSalary: '',
   type: '',
   location: '',
   experienceLevel: '',
@@ -30,6 +32,7 @@ const DEFAULT_FILTERS: FilterState = {
   salaryCurrency: '',
   postedDate: '',
   remoteOnly: false,
+  hasSalary: false,
   sortBy: 'newest',
 };
 
@@ -41,8 +44,10 @@ function parseFiltersFromUrl(search: string): { filters: FilterState; page: numb
     filters: {
       searchQuery: params.get('q') || '',
       searchLocation: params.get('qloc') || '',
+      company: params.get('company') || '',
       category: params.get('category') || '',
       salary: params.get('salary') || '',
+      minSalary: params.get('minSalary') || '',
       type: params.get('type') || '',
       location: params.get('location') || '',
       experienceLevel: params.get('exp') || '',
@@ -50,6 +55,7 @@ function parseFiltersFromUrl(search: string): { filters: FilterState; page: numb
       salaryCurrency: params.get('currency') || '',
       postedDate: params.get('posted') || '',
       remoteOnly: params.get('remote') === '1',
+      hasSalary: params.get('hasSalary') === '1',
       sortBy: params.get('sort') || 'newest',
     },
     page: Number.isFinite(parsedPage) && parsedPage > 0 ? parsedPage : 1,
@@ -60,8 +66,10 @@ function buildUrlFromFilters(filters: FilterState, page: number): string {
   const params = new URLSearchParams();
   if (filters.searchQuery) params.set('q', filters.searchQuery);
   if (filters.searchLocation) params.set('qloc', filters.searchLocation);
+  if (filters.company) params.set('company', filters.company);
   if (filters.category) params.set('category', filters.category);
   if (filters.salary) params.set('salary', filters.salary);
+  if (filters.minSalary) params.set('minSalary', filters.minSalary);
   if (filters.type) params.set('type', filters.type);
   if (filters.location) params.set('location', filters.location);
   if (filters.experienceLevel) params.set('exp', filters.experienceLevel);
@@ -69,6 +77,7 @@ function buildUrlFromFilters(filters: FilterState, page: number): string {
   if (filters.salaryCurrency) params.set('currency', filters.salaryCurrency);
   if (filters.postedDate) params.set('posted', filters.postedDate);
   if (filters.remoteOnly) params.set('remote', '1');
+  if (filters.hasSalary) params.set('hasSalary', '1');
   if (filters.sortBy && filters.sortBy !== 'newest') params.set('sort', filters.sortBy);
   if (page > 1) params.set('page', String(page));
 
@@ -104,6 +113,27 @@ function HomeContent() {
   // Show loading state while fetching from Firebase
   const showLoading = firestoreLoading || isLoading;
   const totalJobs = jobsToDisplay.length;
+  const remoteJobCount = useMemo(
+    () => jobsToDisplay.filter((job) => /remote/i.test(`${job.location || ''} ${job.type || ''}`)).length,
+    [jobsToDisplay]
+  );
+  const featuredCompanyCount = useMemo(
+    () => new Set(jobsToDisplay.map((job) => job.company_name).filter(Boolean)).size,
+    [jobsToDisplay]
+  );
+  const popularStacks = useMemo(() => {
+    const counts = new Map<string, number>();
+    jobsToDisplay.forEach((job) => {
+      (job.tags || []).forEach((tag) => {
+        counts.set(tag, (counts.get(tag) || 0) + 1);
+      });
+    });
+
+    return Array.from(counts.entries())
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5)
+      .map(([tag]) => tag);
+  }, [jobsToDisplay]);
 
   useEffect(() => {
     const loadCompanyProfiles = async () => {
@@ -270,76 +300,141 @@ function HomeContent() {
       <Header />
 
       <main className="mx-auto w-full px-6 py-10 md:py-12 xl:px-12">
-        <section className="mb-9 grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-          <div className="lg:col-span-2">
-            <p className="mb-3 text-xs font-bold uppercase tracking-[0.22em] text-cyber-purple">
-              Tech Hiring, Reimagined
-            </p>
-            <h2 className="max-w-4xl text-4xl font-black leading-[1.04] text-foreground md:text-6xl">
-              Hire better engineers.
-              <span className="block text-cyber-purple-dark">Get hired faster.</span>
-            </h2>
-            <p className="mt-4 max-w-3xl text-base text-foreground-muted md:text-xl">
-              Verified roles for software, data, DevOps, AI, and product teams.
-            </p>
-          </div>
-          <div className="glass rounded-2xl p-6">
-            <p className="mb-3 text-xs font-bold uppercase tracking-[0.2em] text-foreground-light">Platform Highlights</p>
-            <div className="space-y-2 text-sm leading-relaxed text-foreground">
-              <p>• Role-focused candidate and recruiter flows</p>
-              <p>• Advanced filters and fast job discovery</p>
-              <p>• Verified company job postings</p>
+        <section className="home-hero mb-9 grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1.35fr)_minmax(360px,0.65fr)] items-stretch">
+          <div className="home-hero-panel hero">
+            <div className="space-y-6 fade-in">
+              <div className="inline-flex items-center gap-2 rounded-full bg-white/85 px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-cyber-purple shadow-soft border border-white/80">
+                <Sparkles className="w-4 h-4" />
+                Tech hiring, reimagined
+              </div>
+              <div className="space-y-4">
+                <h2 className="max-w-5xl text-4xl font-black leading-[1.02] text-foreground md:text-6xl tracking-normal">
+                  Find sharper tech roles with less noise.
+                </h2>
+                <p className="max-w-3xl text-base leading-8 text-foreground-muted md:text-xl">
+                  A focused marketplace for software, data, DevOps, AI, and product teams. Search verified jobs, compare the signal, and move faster.
+                </p>
+              </div>
+
+              <div className="home-search-panel">
+                <div className="grid grid-cols-1 gap-3 md:grid-cols-[1fr_1fr_auto] md:items-end">
+                  <div>
+                    <label className="mb-2 block text-sm font-semibold text-foreground">Role</label>
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-foreground-muted" />
+                      <input
+                        type="text"
+                        value={titleQueryInput}
+                        onChange={(e) => setTitleQueryInput(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            handleTopSearch();
+                          }
+                        }}
+                        placeholder="Frontend, Data, DevOps..."
+                        className="w-full rounded-xl border border-glass-border bg-white/95 py-3 pl-10 pr-3 text-sm text-foreground outline-none focus:border-electric-blue focus:ring-2 focus:ring-electric-blue/20"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="mb-2 block text-sm font-semibold text-foreground">Location</label>
+                    <div className="relative">
+                      <MapPin className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-foreground-muted" />
+                      <input
+                        type="text"
+                        value={locationQueryInput}
+                        onChange={(e) => setLocationQueryInput(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            handleTopSearch();
+                          }
+                        }}
+                        placeholder="London, Remote..."
+                        className="w-full rounded-xl border border-glass-border bg-white/95 py-3 pl-10 pr-3 text-sm text-foreground outline-none focus:border-electric-blue focus:ring-2 focus:ring-electric-blue/20"
+                      />
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleTopSearch}
+                    className="btn-primary inline-flex h-12 items-center justify-center gap-2 px-5 text-sm"
+                  >
+                    Search jobs
+                    <ArrowRight className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex flex-wrap gap-2">
+                {(popularStacks.length > 0 ? popularStacks : ['React', 'Python', 'AWS', 'DevOps']).map((stack) => (
+                  <button
+                    key={stack}
+                    type="button"
+                    onClick={() => {
+                      setTitleQueryInput(stack);
+                      handleFilterChange({ ...filters, searchQuery: stack });
+                      setHasSearched(true);
+                    }}
+                    className="rounded-full border border-white/70 bg-white/75 px-3 py-1.5 text-xs font-semibold text-foreground-muted transition hover:border-electric-blue/45 hover:text-electric-blue"
+                  >
+                    {stack}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
+
+          <aside className="home-bento-grid">
+            <div className="home-bento-card home-bento-card-large">
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-foreground-light">Live roles</p>
+                  <p className="mt-2 text-4xl font-black text-foreground">{totalJobs || '0'}</p>
+                </div>
+                <BriefcaseBusiness className="h-9 w-9 text-electric-blue" />
+              </div>
+              <p className="mt-4 text-sm leading-6 text-foreground-muted">Fresh opportunities from teams hiring across product engineering, data, cloud, and AI.</p>
+            </div>
+            <div className="home-bento-card">
+              <Users className="h-5 w-5 text-cyber-purple" />
+              <p className="mt-4 text-2xl font-black text-foreground">{featuredCompanyCount || '0'}</p>
+              <p className="text-sm text-foreground-muted">companies</p>
+            </div>
+            <div className="home-bento-card">
+              <MapPin className="h-5 w-5 text-neon-green" />
+              <p className="mt-4 text-2xl font-black text-foreground">{remoteJobCount || '0'}</p>
+              <p className="text-sm text-foreground-muted">remote-friendly</p>
+            </div>
+            <div className="home-bento-card home-bento-card-wide">
+              <div className="flex items-center gap-3">
+                <Cpu className="h-5 w-5 text-electric-blue" />
+                <p className="text-sm font-semibold uppercase tracking-[0.16em] text-foreground-light">Trending stacks</p>
+              </div>
+              <div className="mt-4 flex flex-wrap gap-2">
+                {(popularStacks.length > 0 ? popularStacks.slice(0, 4) : ['React', 'Python', 'AWS']).map((stack) => (
+                  <span key={stack} className="rounded-full bg-white/80 px-3 py-1 text-xs font-semibold text-foreground">
+                    {stack}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </aside>
         </section>
 
-        <section className="glass mb-7 rounded-2xl p-5 md:p-6">
-          <div className="grid grid-cols-1 md:grid-cols-[1fr_1fr_auto] gap-3 items-end">
-            <div>
-              <label className="mb-2 block text-sm font-semibold text-foreground">Job Title</label>
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-foreground-muted" />
-                <input
-                  type="text"
-                  value={titleQueryInput}
-                  onChange={(e) => setTitleQueryInput(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault();
-                      handleTopSearch();
-                    }
-                  }}
-                  placeholder="e.g. Frontend Engineer"
-                  className="w-full rounded-xl border border-glass-border bg-glass-background py-2.5 pl-10 pr-3 text-sm text-foreground outline-none focus:border-electric-blue focus:ring-2 focus:ring-electric-blue/20"
-                />
-              </div>
-            </div>
-            <div>
-              <label className="mb-2 block text-sm font-semibold text-foreground">Location</label>
-              <div className="relative">
-                <MapPin className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-foreground-muted" />
-                <input
-                  type="text"
-                  value={locationQueryInput}
-                  onChange={(e) => setLocationQueryInput(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault();
-                      handleTopSearch();
-                    }
-                  }}
-                  placeholder="e.g. London, Remote"
-                  className="w-full rounded-xl border border-glass-border bg-glass-background py-2.5 pl-10 pr-3 text-sm text-foreground outline-none focus:border-electric-blue focus:ring-2 focus:ring-electric-blue/20"
-                />
-              </div>
-            </div>
-            <button
-              type="button"
-              onClick={handleTopSearch}
-              className="btn-primary h-10.5 px-5 text-sm"
-            >
-              Search Jobs
-            </button>
+        <section className="mb-7 grid gap-3 md:grid-cols-3">
+          <div className="home-signal-card">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-foreground-light">For candidates</p>
+            <p className="mt-2 text-sm text-foreground-muted">Cleaner discovery, saved roles, and one path into each application.</p>
+          </div>
+          <div className="home-signal-card">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-foreground-light">For recruiters</p>
+            <p className="mt-2 text-sm text-foreground-muted">Post roles, manage interest, and keep hiring workflows focused.</p>
+          </div>
+          <div className="home-signal-card">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-foreground-light">Less clutter</p>
+            <p className="mt-2 text-sm text-foreground-muted">Modern filters appear when you search, so the first view stays calm.</p>
           </div>
         </section>
 

@@ -50,6 +50,13 @@ export function filterJobs(jobs: Job[], filters: FilterState): Job[] {
       }
     }
 
+    if (filters.company) {
+      const companyQuery = filters.company.toLowerCase();
+      if (!job.company_name.toLowerCase().includes(companyQuery)) {
+        return false;
+      }
+    }
+
     if (filters.category && !matchesCategory(job, filters.category)) {
       return false;
     }
@@ -125,7 +132,9 @@ export function filterJobs(jobs: Job[], filters: FilterState): Job[] {
         (level === 'junior' && (expBlob.includes('junior') || expBlob.includes('entry'))) ||
         (level === 'mid' && (expBlob.includes('mid') || expBlob.includes('intermediate'))) ||
         (level === 'senior' && expBlob.includes('senior')) ||
-        (level === 'lead' && (expBlob.includes('lead') || expBlob.includes('principal') || expBlob.includes('staff')));
+        (level === 'lead' && (expBlob.includes('lead') || expBlob.includes('head of') || expBlob.includes('manager'))) ||
+        (level === 'staff' && (expBlob.includes('staff') || expBlob.includes('principal'))) ||
+        (level === 'internship' && (expBlob.includes('intern') || expBlob.includes('placement')));
 
       if (!matchesLevel) {
         return false;
@@ -136,6 +145,21 @@ export function filterJobs(jobs: Job[], filters: FilterState): Job[] {
     if (filters.salary) {
       const min = extractMinSalary(job.salary_range);
       if (!isWithinSalaryRange(min, filters.salary)) {
+        return false;
+      }
+    }
+
+    if (filters.minSalary) {
+      const minSalary = Number(filters.minSalary);
+      const jobMinSalary = extractMinSalary(job.salary_range);
+      if (!Number.isFinite(minSalary) || jobMinSalary < minSalary) {
+        return false;
+      }
+    }
+
+    if (filters.hasSalary) {
+      const hasVisibleSalary = Boolean(job.salary_range && (job.salary_range.min || job.salary_range.max));
+      if (!hasVisibleSalary) {
         return false;
       }
     }
@@ -203,7 +227,10 @@ export function extractMinSalary(salaryStrOrRange: string | { min: number; max: 
  * Checks if salary is within specified range
  */
 export function isWithinSalaryRange(salary: number, range: string): boolean {
-  const [min, max] = range.split('-').map(Number);
+  const normalizedRange = range.replace('+', '');
+  const [rawMin, rawMax] = normalizedRange.split('-').map(Number);
+  const min = Number.isFinite(rawMin) ? rawMin * 1000 : 0;
+  const max = Number.isFinite(rawMax) ? rawMax * 1000 : undefined;
 
   if (max === undefined) {
     return salary >= min; // Range like "200+"

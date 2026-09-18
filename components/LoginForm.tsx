@@ -8,7 +8,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
-import { Mail, Lock, Loader, ShieldCheck } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, Loader, ShieldCheck } from 'lucide-react';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import Link from 'next/link';
@@ -33,13 +33,23 @@ export function LoginForm({
   signupPath = '/signup/candidate',
 }: LoginFormProps) {
   const [email, setEmail] = useState('');
+  const [resetEmail, setResetEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [loadingAction, setLoadingAction] = useState<'login' | 'reset' | 'verification' | null>(null);
   const [formError, setFormError] = useState('');
   const [toast, setToast] = useState<ToastMessage | null>(null);
-  const { signIn, signOut, error } = useAuth();
+  const [showVerificationActions, setShowVerificationActions] = useState(false);
+  const [showPasswordReset, setShowPasswordReset] = useState(false);
+  const { signIn, signOut, error, clearError } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const isLoading = loadingAction !== null;
+
+  const clearDisplayedErrors = () => {
+    setFormError('');
+    clearError();
+  };
 
   useEffect(() => {
     if (!toast) return;
@@ -97,17 +107,18 @@ export function LoginForm({
   };
 
   const handleResendVerification = async () => {
-    setFormError('');
+    clearDisplayedErrors();
 
     if (!email || !password) {
-      showLoginError('Enter email and password first, then click resend verification.');
+      showLoginError('Enter your email and password first, then resend the verification email.');
       return;
     }
 
-    setIsLoading(true);
+    setLoadingAction('verification');
     try {
       const credential = await signIn(email, password);
       if (credential.user.emailVerified) {
+        setShowVerificationActions(false);
         await signOut();
         setToast({
           id: Date.now(),
@@ -118,6 +129,7 @@ export function LoginForm({
       }
 
       await sendEmailVerification(credential.user);
+      setShowVerificationActions(false);
       await signOut();
       setToast({
         id: Date.now(),
@@ -129,25 +141,26 @@ export function LoginForm({
       const mapped = getLoginErrorMessage(err);
       showLoginError(mapped.message, mapped.suggestSignup);
     } finally {
-      setIsLoading(false);
+      setLoadingAction(null);
     }
   };
 
   const handleForgotPassword = async () => {
-    setFormError('');
+    clearDisplayedErrors();
 
-    if (!email.trim()) {
-      showLoginError('Enter your email first, then click forgot password.');
+    if (!resetEmail.trim()) {
+      showLoginError('Enter your email first, then send the reset link.');
       return;
     }
 
-    setIsLoading(true);
+    setLoadingAction('reset');
     try {
       if (!hasRequiredConfig || !app) {
         throw new Error('Firebase config is missing. Check your environment variables.');
       }
       const auth = getAuth(app);
-      await sendPasswordResetEmail(auth, email.trim());
+      await sendPasswordResetEmail(auth, resetEmail.trim());
+      setShowPasswordReset(false);
       setToast({
         id: Date.now(),
         type: 'success',
@@ -158,24 +171,26 @@ export function LoginForm({
       const mapped = getLoginErrorMessage(err);
       showLoginError(mapped.message, mapped.suggestSignup);
     } finally {
-      setIsLoading(false);
+      setLoadingAction(null);
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setFormError('');
-    setIsLoading(true);
+    clearDisplayedErrors();
+    setLoadingAction('login');
 
     try {
       const credential = await signIn(email, password);
 
       if (!credential.user.emailVerified) {
+        setShowVerificationActions(true);
         await signOut();
-        showLoginError('Please verify your email before login. Use "Resend Verification Email" below if needed.');
+        showLoginError('Email not verified. Please check your inbox or resend verification email.');
         return;
       }
 
+      setShowVerificationActions(false);
       const userProfileSnap = await getDoc(doc(db, 'user_profiles', credential.user.uid));
       const role = userProfileSnap.data()?.role as 'candidate' | 'company' | undefined;
 
@@ -207,98 +222,193 @@ export function LoginForm({
       const mapped = getLoginErrorMessage(err);
       showLoginError(mapped.message, mapped.suggestSignup);
     } finally {
-      setIsLoading(false);
+      setLoadingAction(null);
     }
   };
 
   return (
     <div className="w-full max-w-md">
-      <form onSubmit={handleSubmit} className="auth-card p-8 md:p-9 space-y-6">
-        <div>
-          <div className="inline-flex items-center gap-2 rounded-full border border-glass-border/70 px-3 py-1 text-xs uppercase tracking-[0.16em] text-electric-blue/90 mb-3">
+     <form
+       onSubmit={(event) => {
+         if (!showPasswordReset) {
+           handleSubmit(event);
+           return;
+         }
+         event.preventDefault();
+         void handleForgotPassword();
+       }}
+       className="auth-card p-8 md:p-9 lg:p-10 space-y-6"
+     >
+       <div className="space-y-3">
+         <div className="inline-flex items-center gap-2 rounded-full border border-glass-border/70 bg-white/70 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.2em] text-electric-blue/90">
             <ShieldCheck className="w-3.5 h-3.5" />
             Secure Access
           </div>
-          <h2 className="text-3xl font-extrabold tracking-tight text-foreground">{title}</h2>
-          {subtitle && <p className="text-sm text-foreground-muted mt-2">{subtitle}</p>}
-        </div>
+         <div className="space-y-2">
+           <h2 className="text-3xl md:text-4xl font-semibold tracking-[-0.02em] text-foreground">{title}</h2>
+           {subtitle && <p className="text-sm leading-6 text-foreground-muted">{subtitle}</p>}
+         </div>
+       </div>
 
-        {(formError || error) && (
-          <div className="bg-red-500/20 border border-red-500 rounded p-3 text-red-200 text-sm">
-            {formError || error}
-          </div>
-        )}
+       {((formError || error) && !showVerificationActions) && (
+         <div className="rounded-2xl border border-red-400/50 bg-red-500/12 p-3 text-sm text-red-700">
+           {formError || error}
+         </div>
+       )}
 
-        <div className="space-y-2">
-          <label className="block text-foreground-light text-sm font-medium">Email</label>
-          <div className="flex items-center gap-2 auth-input px-3">
-            <Mail className="w-4 h-4 text-foreground-muted" />
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="your@email.com"
-              className="bg-transparent outline-none w-full text-foreground placeholder-foreground-muted text-sm"
-              required
-            />
-          </div>
-        </div>
+       {showPasswordReset ? (
+         <div className="space-y-4">
+           <label className="block text-[11px] font-semibold uppercase tracking-[0.2em] text-foreground-light">
+             Reset Email
+           </label>
+           <div className="flex items-center gap-3 auth-input px-3 py-3">
+             <Mail className="w-4 h-4 text-foreground-muted" />
+             <input
+               type="email"
+               name="reset-email"
+               autoComplete="email"
+               value={resetEmail}
+               onChange={(e) => {
+                 setResetEmail(e.target.value);
+                 clearDisplayedErrors();
+               }}
+               placeholder="your@email.com"
+               className="bg-transparent outline-none w-full text-foreground placeholder-foreground-muted text-[15px] leading-6"
+               required
+             />
+           </div>
+           <button
+             type="submit"
+             disabled={isLoading}
+             className="btn-secondary w-full flex items-center justify-center gap-2"
+           >
+             {loadingAction === 'reset' ? (
+               <>
+                 <Loader className="w-4 h-4 animate-spin" />
+                 Sending reset link...
+               </>
+             ) : (
+               'Send reset link'
+             )}
+           </button>
+         </div>
+       ) : (
+         <>
+           <div className="space-y-2">
+             <label className="block text-[11px] font-semibold uppercase tracking-[0.2em] text-foreground-light">Email</label>
+             <div className="flex items-center gap-3 auth-input px-3 py-3">
+               <Mail className="w-4 h-4 text-foreground-muted" />
+               <input
+                 type="email"
+                 name="email"
+                 autoComplete="email"
+                 value={email}
+                 onChange={(e) => {
+                   setEmail(e.target.value);
+                   clearDisplayedErrors();
+                 }}
+                 placeholder="your@email.com"
+                 className="bg-transparent outline-none w-full text-foreground placeholder-foreground-muted text-[15px] leading-6"
+                 required
+                 onFocus={() => {
+                   clearDisplayedErrors();
+                   setShowVerificationActions(false);
+                 }}
+               />
+             </div>
+           </div>
 
-        <div className="space-y-2">
-          <label className="block text-foreground-light text-sm font-medium">Password</label>
-          <div className="flex items-center gap-2 auth-input px-3">
-            <Lock className="w-4 h-4 text-foreground-muted" />
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
-              className="bg-transparent outline-none w-full text-foreground placeholder-foreground-muted text-sm"
-              required
-            />
-          </div>
-        </div>
+           <div className="space-y-2">
+             <label className="block text-[11px] font-semibold uppercase tracking-[0.2em] text-foreground-light">Password</label>
+             <div className="flex items-center gap-3 auth-input px-3 py-3">
+               <Lock className="w-4 h-4 text-foreground-muted" />
+               <input
+                 type={showPassword ? 'text' : 'password'}
+                 name="password"
+                 autoComplete="current-password"
+                 value={password}
+                 onChange={(e) => {
+                   setPassword(e.target.value);
+                   clearDisplayedErrors();
+                 }}
+                 placeholder="••••••••"
+                 className="bg-transparent outline-none w-full text-foreground placeholder-foreground-muted text-[15px] leading-6"
+                 required
+                 onFocus={() => {
+                   clearDisplayedErrors();
+                   setShowVerificationActions(false);
+                 }}
+               />
+               <button
+                 type="button"
+                 onClick={() => setShowPassword((current) => !current)}
+                 className="rounded-full p-2 text-foreground-muted transition hover:bg-slate-100 hover:text-electric-blue"
+                 aria-label={showPassword ? 'Hide password' : 'Show password'}
+               >
+                 {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+               </button>
+             </div>
+             <button
+               type="button"
+               onClick={() => {
+                 setResetEmail(email);
+                 setShowPasswordReset(true);
+                 clearDisplayedErrors();
+               }}
+               disabled={isLoading}
+               className="text-sm font-semibold text-cyber-purple transition hover:text-electric-blue"
+             >
+               Forgot password?
+             </button>
+           </div>
 
-        <button
-          type="submit"
-          disabled={isLoading}
-          className="btn-primary w-full flex items-center justify-center gap-2"
-        >
-          {isLoading ? (
-            <>
-              <Loader className="w-4 h-4 animate-spin" />
-              Logging in...
-            </>
-          ) : (
-            'Login'
-          )}
-        </button>
+           <button
+             type="submit"
+             disabled={isLoading}
+             className="btn-primary w-full flex items-center justify-center gap-2 py-3"
+           >
+             {isLoading ? (
+               <>
+                 <Loader className="w-4 h-4 animate-spin" />
+                 {loadingAction === 'login' ? 'Logging in...' : 'Please wait...'}
+               </>
+             ) : (
+               'Login'
+             )}
+           </button>
 
-        <button
-          type="button"
-          onClick={handleResendVerification}
-          disabled={isLoading}
-          className="btn-secondary w-full flex items-center justify-center gap-2"
-        >
-          Resend Verification Email
-        </button>
+           {showVerificationActions && (
+             <div className="space-y-3 rounded-2xl border border-glass-border/70 bg-white/70 p-3">
+               <p className="text-sm leading-6 text-foreground-muted">
+                 {formError || error || 'Email not verified. Please check your inbox or resend verification email.'}
+               </p>
+               <button
+                 type="button"
+                 onClick={handleResendVerification}
+                 disabled={isLoading}
+                 className="btn-secondary w-full flex items-center justify-center gap-2"
+               >
+                 {loadingAction === 'verification' ? (
+                   <>
+                     <Loader className="w-4 h-4 animate-spin" />
+                     Sending verification...
+                   </>
+                 ) : (
+                   'Resend Verification Email'
+                 )}
+               </button>
+             </div>
+           )}
 
-        <button
-          type="button"
-          onClick={handleForgotPassword}
-          disabled={isLoading}
-          className="btn-secondary w-full flex items-center justify-center gap-2"
-        >
-          Forgot Password
-        </button>
-
-        <p className="text-center text-foreground-muted text-sm">
-          Don&apos;t have an account?{' '}
-          <Link href={signupPath} className="text-cyber-purple hover:text-electric-blue transition">
-            Sign up
-          </Link>
-        </p>
-      </form>
+           <p className="text-center text-sm text-foreground-muted">
+             Don&apos;t have an account?{' '}
+             <Link href={signupPath} className="font-semibold text-cyber-purple transition hover:text-electric-blue">
+               Sign up
+             </Link>
+           </p>
+         </>
+       )}
+     </form>
       <div className="fixed right-4 top-4 z-50 w-[min(92vw,360px)]">
         <Toast toast={toast} onClose={() => setToast(null)} />
       </div>

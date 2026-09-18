@@ -53,8 +53,10 @@ export function useJobFiltering(jobs: Job[], initialFilters?: FilterState) {
   const [filters, setFilters] = useState<FilterState>(() => ({
     searchQuery: initialFilters?.searchQuery || '',
     searchLocation: initialFilters?.searchLocation || '',
+    company: initialFilters?.company || '',
     category: initialFilters?.category || '',
     salary: initialFilters?.salary || '',
+    minSalary: initialFilters?.minSalary || '',
     type: initialFilters?.type || '',
     location: initialFilters?.location || '',
     experienceLevel: initialFilters?.experienceLevel || '',
@@ -62,6 +64,7 @@ export function useJobFiltering(jobs: Job[], initialFilters?: FilterState) {
     salaryCurrency: initialFilters?.salaryCurrency || '',
     postedDate: initialFilters?.postedDate || '',
     remoteOnly: Boolean(initialFilters?.remoteOnly),
+    hasSalary: Boolean(initialFilters?.hasSalary),
     sortBy: initialFilters?.sortBy || 'newest',
   }));
   const [isLoading, setIsLoading] = useState(false);
@@ -84,8 +87,10 @@ export function useJobFiltering(jobs: Job[], initialFilters?: FilterState) {
     const emptyFilters: FilterState = {
       searchQuery: '',
       searchLocation: '',
+      company: '',
       category: '',
       salary: '',
+      minSalary: '',
       type: '',
       location: '',
       experienceLevel: '',
@@ -93,13 +98,15 @@ export function useJobFiltering(jobs: Job[], initialFilters?: FilterState) {
       salaryCurrency: '',
       postedDate: '',
       remoteOnly: false,
+      hasSalary: false,
       sortBy: 'newest',
     };
     handleFilterChange(emptyFilters);
   }, [handleFilterChange]);
 
   const hasActiveFilters = Object.entries(filters).some(([key, value]) => {
-    if (key === 'remoteOnly') return value === true;
+    if (key === 'remoteOnly' || key === 'hasSalary') return value === true;
+    if (key === 'sortBy') return value !== 'newest';
     return value !== '';
   });
 
