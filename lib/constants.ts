@@ -48,10 +48,12 @@ export const JOB_LOCATIONS = [
 
 export const EXPERIENCE_LEVELS = [
   { label: 'All Experience', value: '' },
+  { label: 'Internship', value: 'internship' },
   { label: 'Junior', value: 'junior' },
   { label: 'Mid', value: 'mid' },
   { label: 'Senior', value: 'senior' },
   { label: 'Lead', value: 'lead' },
+  { label: 'Staff / Principal', value: 'staff' },
 ] as const;
 
 export const TECH_STACK_OPTIONS = [
@@ -76,6 +78,16 @@ export const POSTED_DATE_OPTIONS = [
   { label: 'Last 24 Hours', value: '1d' },
   { label: 'Last 7 Days', value: '7d' },
   { label: 'Last 30 Days', value: '30d' },
+] as const;
+
+export const MIN_SALARY_OPTIONS = [
+  { label: 'Any Minimum', value: '' },
+  { label: '£50K+', value: '50000' },
+  { label: '£80K+', value: '80000' },
+  { label: '£100K+', value: '100000' },
+  { label: '£120K+', value: '120000' },
+  { label: '£150K+', value: '150000' },
+  { label: '£200K+', value: '200000' },
 ] as const;
 
 export const SORT_OPTIONS = [

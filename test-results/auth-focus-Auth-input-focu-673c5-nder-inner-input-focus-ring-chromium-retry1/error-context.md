@@ -1,0 +1,49 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e2]:
+  - banner [ref=e3]:
+    - generic [ref=e5]:
+      - generic [ref=e6]:
+        - img "TechHire logo" [ref=e7]
+        - heading "TechHire" [level=1] [ref=e8]
+      - generic [ref=e9]:
+        - link "About" [ref=e10] [cursor=pointer]:
+          - /url: /about
+        - link "Login" [ref=e11] [cursor=pointer]:
+          - /url: /login/candidate
+        - link "Recruiter" [ref=e12] [cursor=pointer]:
+          - /url: /login/recruiter
+  - main [ref=e13]:
+    - generic [ref=e16]:
+      - generic [ref=e17]:
+        - generic [ref=e18]:
+          - img [ref=e19]
+          - text: New Account
+        - heading "Candidate Signup" [level=2] [ref=e22]
+        - paragraph [ref=e23]: Create your candidate account and start applying.
+      - generic [ref=e24]:
+        - text: Email
+        - generic [ref=e25]:
+          - img [ref=e26]
+          - textbox "your@email.com" [ref=e29]
+      - generic [ref=e30]:
+        - text: Password
+        - generic [ref=e31]:
+          - img [ref=e32]
+          - textbox "••••••••" [ref=e35]
+          - button "Show password" [ref=e36]:
+            - img [ref=e37]
+      - generic [ref=e40]:
+        - text: Confirm Password
+        - generic [ref=e41]:
+          - img [ref=e42]
+          - textbox "••••••••" [ref=e45]
+          - button "Show confirm password" [ref=e46]:
+            - img [ref=e47]
+      - button "Sign Up" [ref=e50]
+      - paragraph [ref=e51]:
+        - text: Already have an account?
+        - link "Login" [ref=e52] [cursor=pointer]:
+          - /url: /login/candidate
+```

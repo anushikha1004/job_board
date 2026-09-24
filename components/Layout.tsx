@@ -98,9 +98,9 @@ export const Header: React.FC = () => {
   };
 
   return (
-    <header className="glass-heavy sticky top-0 z-50 w-full border-b border-glass-border/70">
-      <div className="mx-auto w-full px-6 py-4 xl:px-12">
-        <div className="flex items-center justify-between">
+    <header className="glass-heavy sticky top-0 z-50 w-full border-b border-glass-border/70 bg-white/85 backdrop-blur-xl shadow-soft">
+      <div className="mx-auto w-full max-w-7xl px-6 py-4 xl:px-12">
+        <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="relative h-12 w-12 overflow-hidden rounded-full border border-glass-border bg-background/40">
               <Image
@@ -119,13 +119,22 @@ export const Header: React.FC = () => {
           <div className="flex items-center gap-4">
             {!isSignedIn ? (
               <>
-                <Link href="/about" className="text-sm text-foreground-muted hover:text-electric-blue transition">
+                <Link
+                  href="/about"
+                  className="rounded-full px-3 py-2 text-sm font-medium text-foreground-muted transition hover:bg-white/80 hover:text-electric-blue"
+                >
                   About
                 </Link>
-                <Link href="/login/candidate" className="btn-secondary py-2 px-4 text-sm!">
+                <Link
+                  href="/login/candidate"
+                  className="btn-secondary py-2 px-4 text-sm font-semibold"
+                >
                   Login
                 </Link>
-                <Link href="/login/recruiter" className="rounded-full border border-glass-border px-3 py-1.5 text-xs font-bold uppercase tracking-[0.16em] text-cyber-purple hover:border-electric-blue/45 hover:text-electric-blue transition">
+                <Link
+                  href="/login/recruiter"
+                  className="btn-primary py-2 px-4 text-sm font-semibold"
+                >
                   Recruiter
                 </Link>
               </>
