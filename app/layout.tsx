@@ -27,6 +27,11 @@ export const metadata: Metadata = {
   },
   description: SITE_DESCRIPTION,
   keywords: ['Tech jobs', 'Recruitment platform', 'Developer jobs', 'Hiring', 'TechHire'],
+  icons: {
+    icon: '/favicon-techhire-20260923.ico',
+    shortcut: '/favicon-techhire-20260923.ico',
+    apple: '/techhire-mark.png',
+  },
   alternates: {
     canonical: '/',
   },
@@ -39,7 +44,7 @@ export const metadata: Metadata = {
     description: SITE_DESCRIPTION,
     images: [
       {
-        url: '/techhire-logo.png',
+        url: '/techhire-logo-20260922.png',
         width: 1200,
         height: 630,
         alt: 'TechHire',
@@ -50,7 +55,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: SITE_NAME,
     description: SITE_DESCRIPTION,
-    images: ['/techhire-logo.png'],
+    images: ['/techhire-logo-20260922.png'],
   },
 };
 

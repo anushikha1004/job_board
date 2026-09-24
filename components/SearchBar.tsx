@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import { Search, Filter, X, Building2 } from 'lucide-react';
 import {
   SALARY_RANGES,
@@ -50,7 +50,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
   advancedOnly = false,
 }) => {
   const [showFilters, setShowFilters] = useState(false);
-  const [filters, setFilters] = useState<FilterState>(() => ({
+  const initialFilterState = useCallback((): FilterState => ({
     searchQuery: initialFilters?.searchQuery || '',
     searchLocation: initialFilters?.searchLocation || '',
     company: initialFilters?.company || '',
@@ -66,27 +66,9 @@ export const SearchBar: React.FC<SearchBarProps> = ({
     remoteOnly: Boolean(initialFilters?.remoteOnly),
     hasSalary: Boolean(initialFilters?.hasSalary),
     sortBy: initialFilters?.sortBy || 'newest',
-  }));
+  }), [initialFilters]);
 
-  useEffect(() => {
-    setFilters({
-      searchQuery: initialFilters?.searchQuery || '',
-      searchLocation: initialFilters?.searchLocation || '',
-      company: initialFilters?.company || '',
-      category: initialFilters?.category || '',
-      salary: initialFilters?.salary || '',
-      minSalary: initialFilters?.minSalary || '',
-      type: initialFilters?.type || '',
-      location: initialFilters?.location || '',
-      experienceLevel: initialFilters?.experienceLevel || '',
-      techStack: initialFilters?.techStack || '',
-      salaryCurrency: initialFilters?.salaryCurrency || '',
-      postedDate: initialFilters?.postedDate || '',
-      remoteOnly: Boolean(initialFilters?.remoteOnly),
-      hasSalary: Boolean(initialFilters?.hasSalary),
-      sortBy: initialFilters?.sortBy || 'newest',
-    });
-  }, [initialFilters]);
+  const [filters, setFilters] = useState<FilterState>(initialFilterState);
 
   const handleFilterChange = useCallback((
     key: keyof FilterState,

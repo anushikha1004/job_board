@@ -102,19 +102,18 @@ export const Header: React.FC = () => {
       <div className="mx-auto w-full max-w-7xl px-6 py-4 xl:px-12">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="relative h-12 w-12 overflow-hidden rounded-full border border-glass-border bg-background/40">
+            <div className="relative h-12 w-28 md:h-14 md:w-40 overflow-hidden rounded-xl bg-background/30 shadow-none flex items-center justify-center">
               <Image
-                src="/techhire-logo.png"
-                alt="TechHire logo"
-                fill
-                sizes="48px"
-                className="object-cover"
+                src="/techhire-mark.png"
+                alt="TechHire"
+                width={160}
+                height={56}
+                className="h-full w-full object-cover"
                 priority
               />
             </div>
-            <h1 className="text-4xl font-extrabold leading-none tracking-tight text-foreground md:text-5xl">
-              Tech<span className="text-electric-blue">Hire</span>
-            </h1>
+            {/* Visually hide the site name but keep it available for screen readers */}
+            <span className="sr-only">TechHire</span>
           </div>
           <div className="flex items-center gap-4">
             {!isSignedIn ? (
