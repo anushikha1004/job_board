@@ -101,19 +101,27 @@ export const Header: React.FC = () => {
     <header className="glass-heavy sticky top-0 z-50 w-full border-b border-glass-border/70 bg-white/85 backdrop-blur-xl shadow-soft">
       <div className="mx-auto w-full max-w-7xl px-6 py-4 xl:px-12">
         <div className="flex flex-wrap items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="relative h-12 w-28 md:h-14 md:w-40 overflow-hidden rounded-xl bg-background/30 shadow-none flex items-center justify-center">
+          <div className="flex items-center gap-2.5">
+            <div className="relative flex h-10 w-10 items-center justify-center overflow-hidden rounded-lg bg-background/30 shadow-none md:h-11 md:w-11">
               <Image
                 src="/techhire-mark.png"
-                alt="TechHire"
-                width={160}
-                height={56}
-                className="h-full w-full object-cover"
+                alt="TechHire mark"
+                width={44}
+                height={44}
+                className="h-full w-full object-contain"
                 priority
               />
             </div>
-            {/* Visually hide the site name but keep it available for screen readers */}
-            <span className="sr-only">TechHire</span>
+            <div className="flex flex-col leading-none">
+              <Link href="/" className="flex flex-col">
+                <span className="text-[1.25rem] font-bold tracking-[-0.05em] text-foreground md:text-[1.4rem]">
+                  techhire
+                </span>
+                <span className="mt-1 text-[11px] font-normal tracking-[0.02em] text-foreground-muted">
+                  People Behind Technology
+                </span>
+              </Link>
+            </div>
           </div>
           <div className="flex items-center gap-4">
             {!isSignedIn ? (
