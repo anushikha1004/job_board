@@ -180,15 +180,8 @@ body {
 
 /* Hero and visual polish */
 .hero-decor {
-  position: absolute;
-  inset: -40% -30% auto auto;
-  width: 900px;
-  height: 600px;
-  background: radial-gradient(closest-side at 20% 20%, rgba(28,169,236,0.12), transparent 30%), radial-gradient(closest-side at 80% 80%, rgba(93,116,242,0.12), transparent 30%);
-  filter: blur(60px) saturate(1.05);
-  transform: translateZ(0);
-  pointer-events: none;
-  z-index: 0;
+  /* Decorative background element removed per request */
+  display: none !important;
 }
 
 .hero {
@@ -214,19 +207,8 @@ body {
 }
 
 .home-hero-panel::after {
-  content: "";
-  position: absolute;
-  right: clamp(18px, 5vw, 64px);
-  bottom: clamp(18px, 5vw, 54px);
-  width: min(38vw, 380px);
-  height: min(38vw, 380px);
-  border: 1px solid rgba(28, 169, 236, 0.14);
-  border-radius: 50%;
-  background:
-    linear-gradient(135deg, rgba(255, 255, 255, 0.78), rgba(255, 255, 255, 0.12)),
-    repeating-linear-gradient(90deg, rgba(28, 169, 236, 0.08) 0 1px, transparent 1px 18px);
-  mask-image: linear-gradient(145deg, transparent 0%, black 36%, black 100%);
-  pointer-events: none;
+  /* Decorative circle removed per request */
+  display: none !important;
 }
 
 .home-search-panel {
